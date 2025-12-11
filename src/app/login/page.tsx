@@ -27,7 +27,16 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      // Safe-parse: baca text dulu supaya jika server mengembalikan HTML/empty,
+      // kita bisa melihat isi response untuk debugging di production.
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (parseErr) {
+        console.error('Invalid JSON from /api/login:', text);
+        throw new Error('Server returned invalid response');
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Login gagal');
