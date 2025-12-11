@@ -1,6 +1,7 @@
 // app/api/profile/route.ts
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import db from '@/lib/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -15,20 +16,7 @@ const getUserIdFromToken = (request: Request) => {
   }
 };
 
-async function getDbSafely() {
-  try {
-    const mod = await import('@/lib/db');
-    return (mod && (mod.default || mod));
-  } catch (err) {
-    console.error('Failed to import DB in /api/profile:', err);
-    return null;
-  }
-}
-
 export async function GET(request: Request) {
-  const db = await getDbSafely();
-  if (!db) return NextResponse.json({ error: 'Server DB error' }, { status: 500 });
-
   try {
     const userId = getUserIdFromToken(request);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -44,15 +32,13 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const db = await getDbSafely();
-  if (!db) return NextResponse.json({ error: 'Server DB error' }, { status: 500 });
-
   try {
     const userId = getUserIdFromToken(request);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { name, dob, gender, avatar } = await request.json();
 
+    // Basic validation
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
     }

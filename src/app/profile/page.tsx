@@ -79,6 +79,13 @@ export default function ProfilePage() {
           } catch (e) {
             // fallback: nothing
           }
+        // also dispatch a simple event so listeners that expect no-detail can react
+        try {
+          window.dispatchEvent(new Event('user-updated'));
+        } catch (e) {
+          // ignore
+        }
+        console.debug('Profile saved and user-updated dispatched', data.user);
           setEditing(false);
       } else {
         alert(data.error || 'Gagal menyimpan profil');
